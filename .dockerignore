@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+Dockerfile
+test
+integration_test
+.git
+.gitignore
+README.md
+test_coordinates.js
+test_api.bat
+test_api.ps1

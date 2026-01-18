@@ -188,3 +188,42 @@ You can improve this project by adding new geocoders.
 To run tests just `npm test`.
 
 To check code style just run `npm run lint`.
+
+## Running the local Geocoder server
+
+This repository includes a small Express server (`server.js`) exposing endpoints suitable to be used from n8n or any HTTP client:
+
+- GET /health
+- GET /api/providers
+- GET /api/search_reverse?latitude=X&longitude=Y&provider=openstreetmap
+- POST /api/search_reverse (JSON body: { latitude, longitude, provider })
+- POST /api/search (JSON body: { address, provider })
+
+Start locally:
+
+```
+npm install
+npm start
+```
+
+The server listens by default on port 3000. Use environment variables to provide provider API keys (e.g. `GOOGLE_API_KEY`, `MAPBOX_API_KEY`, etc.).
+
+## Docker
+
+Build and run the Docker image:
+
+```
+docker build -t node-geocoder:latest .
+docker run -p 3000:3000 --env NODE_ENV=production node-geocoder:latest
+```
+
+## Deploy to VPS using EasyPanel
+
+1. Copy the repository to your VPS or push the Docker image to a registry (Docker Hub or private registry).
+2. In EasyPanel create a new app using a Docker image or from Git repository. Use the Docker image built above or let EasyPanel build from the repository using the included `Dockerfile`.
+3. Expose port 3000 and add any required environment variables for API keys.
+4. Start the app and verify the health check endpoint `http://<your-vps-ip>:3000/health`.
+
+Notes:
+- OpenStreetMap (default provider) doesn't require API keys but has usage policies and rate limits. For production workloads consider using a provider with an API key and paid plan.
+- If you plan large-scale lookups, implement caching and rate-limiting in front of this service.
