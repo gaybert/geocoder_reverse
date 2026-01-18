@@ -206,7 +206,7 @@ npm install
 npm start
 ```
 
-The server listens by default on port 3000. Use environment variables to provide provider API keys (e.g. `GOOGLE_API_KEY`, `MAPBOX_API_KEY`, etc.).
+The server listens by default on port 3002. Use environment variables to provide provider API keys (e.g. `GOOGLE_API_KEY`, `MAPBOX_API_KEY`, etc.).
 
 ## Docker
 
@@ -214,7 +214,7 @@ Build and run the Docker image:
 
 ```
 docker build -t node-geocoder:latest .
-docker run -p 3000:3000 --env NODE_ENV=production node-geocoder:latest
+docker run -p 3002:3002 --env NODE_ENV=production node-geocoder:latest
 ```
 
 ## Deploy to VPS using EasyPanel

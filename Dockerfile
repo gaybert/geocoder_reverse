@@ -13,6 +13,6 @@ RUN npm install --omit=dev --no-audit --no-fund
 # Bundle app source
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3002
 
 CMD [ "node", "server.js" ]
