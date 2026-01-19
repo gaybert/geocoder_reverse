@@ -82,26 +82,52 @@ echo    ETAPA 4: Configurando Cloudflare Tunnel
 echo ═══════════════════════════════════════════════════════════════════
 echo.
 
-if not exist "%USERPROFILE%\.cloudflared\cert.pem" (
+if not exist "%USERPROFILE%\.cloudflared\8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json" (
     echo.
-    echo 🔐 AÇÃO NECESSÁRIA: Login no Cloudflare
+    echo ⚠️  CREDENCIAIS DO TUNNEL NÃO ENCONTRADAS!
     echo.
-    echo Aguarde o navegador abrir...
-    echo Selecione o domínio: urbanmt.com.br
+    echo Você precisa copiar os arquivos do PC antigo:
+    echo.
+    echo DE:   C:\Users\Herbert\.cloudflared\
+    echo PARA: C:\Users\%USERNAME%\.cloudflared\
+    echo.
+    echo Arquivos necessários:
+    echo    ✓ cert.pem
+    echo    ✓ 8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json
+    echo    ✓ config.yml
+    echo.
+    echo Ou execute: CONFIGURAR_TUNNEL_NOVO_PC.bat
     echo.
     pause
-    cloudflared tunnel login
+    
+    echo Tentando configurar automaticamente...
+    if not exist "%USERPROFILE%\.cloudflared" mkdir "%USERPROFILE%\.cloudflared"
+    
+    if not exist "%USERPROFILE%\.cloudflared\cert.pem" (
+        echo Fazendo login no Cloudflare...
+        cloudflared tunnel login
+    )
+    
+    if not exist "%USERPROFILE%\.cloudflared\config.yml" (
+        echo Criando config.yml...
+        (
+            echo tunnel: 8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9
+            echo credentials-file: %USERPROFILE%\.cloudflared\8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json
+            echo.
+            echo ingress:
+            echo   - hostname: geocoder.urbanmt.com.br
+            echo     service: http://localhost:3002
+            echo   - service: http_status:404
+        ) > "%USERPROFILE%\.cloudflared\config.yml"
+    )
+    
     echo.
-)
-
-if not exist "%USERPROFILE%\.cloudflared\8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json" (
-    echo Criando tunnel...
-    cloudflared tunnel create geocoder-mt
-)
-
-if not exist "%USERPROFILE%\.cloudflared\config.yml" (
-    echo Criando configuração...
-    powershell -Command "$config = @'`ntunnel: 8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9`ncredentials-file: %USERPROFILE%\.cloudflared\8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json`n`ningress:`n  - hostname: geocoder.urbanmt.com.br`n    service: http://localhost:3002`n  - service: http_status:404`n'@; $config | Out-File -FilePath '%USERPROFILE%\.cloudflared\config.yml' -Encoding utf8"
+    echo ⚠️  Você ainda precisa copiar o arquivo de credenciais:
+    echo    8d7a8fc3-93f4-4f92-86b0-1f43e5ec6be9.json
+    echo    do PC antigo para: %USERPROFILE%\.cloudflared\
+    echo.
+) else (
+    echo ✓ Credenciais do tunnel encontradas
 )
 
 echo ✓ Cloudflare Tunnel configurado
