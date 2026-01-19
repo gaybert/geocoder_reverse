@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: nominatim-mato-grosso
+    ports:
+      - "8080:8080"
+    environment:
+      # Download dados do Brasil (inclui Mato Grosso)
+      PBF_URL: https://download.geofabrik.de/south-america/brazil-latest.osm.pbf
+      REPLICATION_URL: https://download.geofabrik.de/south-america/brazil-updates/
+      IMPORT_WIKIPEDIA: "false"
+      NOMINATIM_PASSWORD: nominatim_mt_2026
+      IMPORT_STYLE: admin
+      # Otimizações
+      NOMINATIM_FLATNODE_FILE: ""
+      THREADS: 4
+    volumes:
+      - nominatim-db:/var/lib/postgresql/14/main
+    shm_size: 2g
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          memory: 2G
+
+volumes:
+  nominatim-db:
+    driver: local
+
+# Para usar no EasyPanel:
+# 1. Copie este arquivo para o servidor
+# 2. Execute: docker-compose up -d
+# 3. Aguarde a importação (1-2h)
+# 4. Acesse: http://ip-do-servidor:8080

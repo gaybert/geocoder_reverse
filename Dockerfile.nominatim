@@ -1,0 +1,12 @@
+# Dockerfile para Nominatim - Mato Grosso
+FROM mediagis/nominatim:4.4
+
+# Variáveis de ambiente
+ENV PBF_URL=https://download.geofabrik.de/south-america/brazil-latest.osm.pbf
+ENV REPLICATION_URL=https://download.geofabrik.de/south-america/brazil-updates/
+ENV IMPORT_WIKIPEDIA=false
+ENV NOMINATIM_PASSWORD=nominatim_mt_2026
+ENV IMPORT_STYLE=admin
+
+# Expõe porta 8080
+EXPOSE 8080

@@ -6,6 +6,21 @@ const NodeGeocoder = require('./index.js');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Cache em memória para performance
+const cache = new Map();
+const CACHE_MAX_SIZE = 10000;
+const CACHE_TTL = 3600000; // 1 hora em ms
+
+// Limpar cache periodicamente
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of cache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      cache.delete(key);
+    }
+  }
+}, 60000); // A cada 1 minuto
+
 // Middleware
 app.use(express.json());
 
@@ -13,7 +28,8 @@ app.use(express.json());
 const PROVIDERS = {
   openstreetmap: {
     provider: 'openstreetmap',
-    formatter: null
+    formatter: null,
+    osmServer: process.env.OSM_SERVER || 'http://localhost:8080'
   },
   google: {
     provider: 'google',
@@ -109,6 +125,32 @@ app.post('/api/search_reverse', async (req, res) => {
       });
     }
 
+    // Caso especial: latitude=0 e longitude=0 (coordenadas não disponíveis)
+    if (latitude_val === 0 && longitude_val === 0) {
+      return res.json({
+        success: true,
+        provider,
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
+        results: [{
+          latitude: 0,
+          longitude: 0,
+          formattedAddress: 'cidade não informada',
+          country: '',
+          city: 'cidade não informada',
+          state: '',
+          countryCode: '',
+          neighbourhood: '',
+          provider: provider
+        }],
+        skipped: true,
+        message: 'Coordinates 0,0 skipped - no geocoding performed',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     if (latitude_val < -90 || latitude_val > 90) {
       return res.status(400).json({
         error: 'Invalid latitude',
@@ -131,6 +173,17 @@ app.post('/api/search_reverse', async (req, res) => {
       });
     }
 
+    // Verificar cache
+    const cacheKey = `${provider}:${latitude_val.toFixed(6)}:${longitude_val.toFixed(6)}`;
+    if (cache.has(cacheKey)) {
+      const cached = cache.get(cacheKey);
+      return res.json({
+        ...cached.data,
+        cached: true,
+        cacheAge: Math.round((Date.now() - cached.timestamp) / 1000)
+      });
+    }
+
     const geocoder = getGeocoder(provider);
 
     // Fazer reverse geocoding
@@ -139,7 +192,7 @@ app.post('/api/search_reverse', async (req, res) => {
       lon: longitude_val
     });
 
-    res.json({
+    const response = {
       success: true,
       provider,
       coordinates: {
@@ -148,7 +201,19 @@ app.post('/api/search_reverse', async (req, res) => {
       },
       results: result || [],
       timestamp: new Date().toISOString()
+    };
+
+    // Armazenar no cache
+    if (cache.size >= CACHE_MAX_SIZE) {
+      const firstKey = cache.keys().next().value;
+      cache.delete(firstKey);
+    }
+    cache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now()
     });
+
+    res.json(response);
   } catch (error) {
     console.error('Reverse geocoding error:', error);
     res.status(500).json({
@@ -173,6 +238,32 @@ app.get('/api/search_reverse', async (req, res) => {
       return res.status(400).json({
         error: 'Invalid coordinates',
         message: 'latitude (or lat) and longitude (or lng) must be valid numbers'
+      });
+    }
+
+    // Caso especial: latitude=0 e longitude=0 (coordenadas não disponíveis)
+    if (latitude_val === 0 && longitude_val === 0) {
+      return res.json({
+        success: true,
+        provider,
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
+        results: [{
+          latitude: 0,
+          longitude: 0,
+          formattedAddress: 'cidade não informada',
+          country: '',
+          city: 'cidade não informada',
+          state: '',
+          countryCode: '',
+          neighbourhood: '',
+          provider: provider
+        }],
+        skipped: true,
+        message: 'Coordinates 0,0 skipped - no geocoding performed',
+        timestamp: new Date().toISOString()
       });
     }
 
