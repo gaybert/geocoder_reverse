@@ -52,13 +52,14 @@ if %errorlevel% neq 0 (
     echo.
     echo ⚠️  IMPORTANTE: Você precisa REINICIAR este script!
     echo.
-    echo 1. Feche esta janela
+    echo 1. Pressione qualquer tecla para fechar
     echo 2. Execute INSTALADOR_AUTOMATICO.bat novamente
     echo.
     echo O Node.js foi instalado, mas o PATH precisa ser recarregado.
     echo.
-    pause
-    exit /b 0
+    echo Pressione qualquer tecla para fechar...
+    pause >nul
+    exit
 ) else (
     echo ✓ Node.js já instalado
     node --version
@@ -317,8 +318,11 @@ echo    - Credenciais Cloudflare: Execute CONFIGURAR_TUNNEL_NOVO_PC.bat
 echo.
 echo 💡 Após resolver o problema, execute este script novamente.
 echo.
-pause
-exit /b %ERRO%
+echo Pressione qualquer tecla para fechar...
+pause >nul
+exit
 
 :FIM_SUCESSO
-pause
+echo.
+echo Pressione qualquer tecla para fechar...
+pause >nul
