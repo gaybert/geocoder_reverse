@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 cls
 echo.
@@ -17,6 +18,8 @@ echo.
 echo ⚠️  IMPORTANTE: Execute como ADMINISTRADOR!
 echo.
 pause
+
+set ERRO=0
 
 echo.
 echo ═══════════════════════════════════════════════════════════════════
@@ -52,9 +55,11 @@ cd /d "%~dp0"
 echo Instalando pacotes...
 call npm install
 if %errorlevel% neq 0 (
-    echo ✗ Erro ao instalar dependências!
-    pause
-    exit /b 1
+    echo.
+    echo ✗ ERRO ao instalar dependências!
+    echo.
+    set ERRO=1
+    goto FIM_COM_ERRO
 )
 echo ✓ Dependências instaladas
 
@@ -140,18 +145,23 @@ echo.
 
 docker --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ✗ Docker não encontrado!
+    echo.
+    echo ✗ ERRO: Docker não encontrado!
     echo   Instale o Docker Desktop e execute este script novamente.
-    pause
-    exit /b 1
+    echo.
+    set ERRO=1
+    goto FIM_COM_ERRO
 )
 
 echo ✓ Docker encontrado
 docker ps >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ⚠️  Docker não está rodando!
+    echo.
+    echo ⚠️  ERRO: Docker não está rodando!
     echo   Inicie o Docker Desktop e aguarde...
-    pause
+    echo.
+    set ERRO=1
+    goto FIM_COM_ERRO
 )
 
 echo.
@@ -268,4 +278,28 @@ echo.
 echo ⏳ Aguarde ~2 horas para o Nominatim terminar a importação (primeira vez)
 echo    Acompanhe: docker logs -f nominatim-mato-grosso
 echo.
+goto FIM_SUCESSO
+
+:FIM_COM_ERRO
+echo.
+echo ═══════════════════════════════════════════════════════════════════
+echo    ❌ INSTALAÇÃO INTERROMPIDA - ERRO ENCONTRADO
+echo ═══════════════════════════════════════════════════════════════════
+echo.
+echo ⚠️  A instalação foi interrompida devido a erros.
+echo.
+echo 🔍 Verifique as mensagens acima para identificar o problema.
+echo.
+echo 📋 Problemas comuns:
+echo    - Docker não instalado: Instale Docker Desktop
+echo    - Docker não iniciado: Abra Docker Desktop
+echo    - Dependências NPM: Verifique conexão de internet
+echo    - Credenciais Cloudflare: Execute CONFIGURAR_TUNNEL_NOVO_PC.bat
+echo.
+echo 💡 Após resolver o problema, execute este script novamente.
+echo.
+pause
+exit /b %ERRO%
+
+:FIM_SUCESSO
 pause
