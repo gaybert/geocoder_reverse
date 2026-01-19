@@ -29,17 +29,36 @@ echo.
 
 where node >nul 2>&1
 if %errorlevel% neq 0 (
+    echo.
     echo ⚠️  Node.js não encontrado!
     echo.
     echo 📥 Baixando Node.js LTS...
     powershell -Command "Invoke-WebRequest -Uri 'https://nodejs.org/dist/v20.11.0/node-v20.11.0-x64.msi' -OutFile '%TEMP%\nodejs.msi'"
+    if %errorlevel% neq 0 (
+        echo.
+        echo ✗ ERRO ao baixar Node.js!
+        echo   Verifique sua conexão com a internet.
+        echo.
+        set ERRO=1
+        goto FIM_COM_ERRO
+    )
     echo.
     echo 📦 Instalando Node.js...
     msiexec /i "%TEMP%\nodejs.msi" /quiet /norestart
     echo.
-    echo ✓ Node.js instalado! REINICIE este script após o fechamento.
+    echo ═══════════════════════════════════════════════════════════════════
+    echo    ✅ Node.js INSTALADO COM SUCESSO!
+    echo ═══════════════════════════════════════════════════════════════════
+    echo.
+    echo ⚠️  IMPORTANTE: Você precisa REINICIAR este script!
+    echo.
+    echo 1. Feche esta janela
+    echo 2. Execute INSTALADOR_AUTOMATICO.bat novamente
+    echo.
+    echo O Node.js foi instalado, mas o PATH precisa ser recarregado.
+    echo.
     pause
-    exit
+    exit /b 0
 ) else (
     echo ✓ Node.js já instalado
     node --version
